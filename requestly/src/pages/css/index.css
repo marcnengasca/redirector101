@@ -1,0 +1,82 @@
+.select-rule-button,
+.create-rule-button,
+.export-rules-button,
+.import-rules-button {
+  position: relative;
+  top: -3px;
+  padding: 3px 10px;
+  margin-left: 5px;
+}
+
+.rule-index > table {
+  font-size: 14px;
+}
+
+.rule-index > table tr:first-child th {
+  border-bottom: 0;
+}
+
+.table > tbody > tr > td {
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+  color: #666;
+}
+
+.ruleName {
+  cursor: pointer;
+}
+
+.ruleName:hover {
+  text-decoration: none;
+}
+
+.ruleDescription {
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+  width: 350px;
+  max-width: 350px;
+  word-wrap: break-word;
+}
+
+.status-cell {
+  width: 110px;
+}
+
+table tr:hover td {
+  background-color: #d2e6f5 !important;
+  border-color: #aacdf0 !important;
+}
+
+.action-icon {
+  margin-left: 5px;
+}
+
+/* RuleType Row specific properties */
+.redirect.rule-item-row {
+  border-left: 10px solid #5B9027;
+}
+
+.cancel.rule-item-row {
+  border-left: 10px solid #d32a0e;
+}
+
+.replace.rule-item-row {
+  border-left: 10px solid #2A95E7;
+}
+
+.redirect .toggle-status-icon.redirect.active {
+  color: #5B9027;
+}
+
+.cancel .toggle-status-icon.cancel.active {
+  color: #d32a0e;
+}
+
+.replace .toggle-status-icon.replace.active {
+  color: #2A95E7;
+}
+
+.toggle-status-icon.inactive {
+  color: #ccc;
+}

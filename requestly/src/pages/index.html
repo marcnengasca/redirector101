@@ -1,0 +1,353 @@
+<html>
+  <head>
+    <title>Requestly - Play with Network Calls</title>
+    <link href="/src/libs/css/bootstrap.css" rel="stylesheet">
+    <link href="/src/pages/css/styles.css" rel="stylesheet">
+    <link href="/src/pages/css/index.css" rel="stylesheet">
+    <link href="/src/pages/css/editor.css" rel="stylesheet">
+    <link href="/src/pages/css/redirect_rule.css" rel="stylesheet">
+    <link href="/src/pages/css/cancel_rule.css" rel="stylesheet">
+    <link href="/src/pages/css/replace_rule.css" rel="stylesheet">
+    <link href="/src/pages/css/rule_cards.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- All templates go here -->
+    <script type="text/template" id="rule-index-template">
+      <nav class="rule-header rq-dimgrey">
+        <span>Rules</span>
+        <span>(<%= rules.length %>)</span>
+        <div class="right">
+          <a href="#selectRule" role="button" class="btn-success btn select-rule-button">New Rule</a>
+          <% if (rules.length > 0) { %>
+            <button class="btn-info btn-export btn export-rules-button">Export Rules</button>
+          <% } %>
+          <button class="btn-info btn-import btn import-rules-button">Import Rules</button>
+        </div>
+      </nav>
+      <section class="rule-index">
+        <table class="table table-striped">
+          <thead>
+          <tr><th>Name & Description</th><th>Type</th><th>Status</th><th>Created on</th><th></th></tr>
+          </thead>
+          <tbody>
+          <% _.each(rules, function(rule, index) {
+            var id = rule.getId(),
+              date = new Date(Number(rule.getCreationDate())),
+              ruleType = rule.getRuleType(),
+              ruleStatus = rule.getStatus();
+
+            date = date.toUTCString().split(' ');
+            date = date[1] + ' ' + date[2] + ', ' + date[3];
+          %>
+          <tr class="rule-item-row <%=ruleType.toLowerCase()%>" data-id="<%=id%>">
+            <td>
+              <a class="ruleName"><%= RQ.htmlEncode(rule.getName()) %></a>
+              <div class="ruleDescription"><%= RQ.htmlEncode(rule.getDescription()) %></div>
+            </td>
+            <td><%= RQ.htmlEncode(ruleType) %></td>
+            <td class="status-cell"><%= RQ.htmlEncode(ruleStatus) %>
+                <span class="glyphicon glyphicon-ok-sign <%= ruleStatus %> <%= ruleType %> toggle-status-icon"
+                      title="Click to toggle Rule Status">
+                </span>
+            </td>
+            <td><%= RQ.htmlEncode(date) %></td>
+            <td>
+              <span class="glyphicon glyphicon-trash delete-rule-icon action-icon"></span>
+            </td>
+          </tr>
+          <% }); %>
+          </tbody>
+        </table>
+      </section>
+    </script>
+
+    <!-- Redirect Rule Editor Template -->
+    <script type="text/template" id="redirect-rule-editor-template">
+      <nav class="rule-header rq-green">
+        <span>Redirect Request Rule</span>
+      </nav>
+      <section class="rule-body">
+        <div class="input-group name-container">
+          <span class="input-group-addon">Rule Name</span>
+          <input type="text" class="form-control rule-name-input" placeholder="" value="<%=rule.getName()%>">
+        </div>
+
+        <% var status = rule.getStatus() %>
+        <div class="rule-status-container">
+          <span class="title">Status</span>
+          <span class="dropdown-container">
+            <select class="rule-status-select">
+              <option value="<%= RQ.RULE_STATUS.ACTIVE %>" "<% if(status === RQ.RULE_STATUS.ACTIVE) { %> selected <% } %>">
+              Active
+              </option>
+              <option value="<%= RQ.RULE_STATUS.INACTIVE %>" <% if(status === RQ.RULE_STATUS.INACTIVE) { %> selected <% } %> >
+              Inactive
+              </option>
+            </select>
+          </span>
+        </div>
+
+        <div class="description-container">
+          <div class="title">Rule Description (Optional)</div>
+          <textarea class="rule-description"
+            placeholder="e.g. Redirecting app.js on qa environment to dev environment"><%=rule.getDescription()%></textarea>
+        </div>
+
+        <div class="source-container">
+          <% var source = rule.getSource(); %>
+          <div class="title">Source</div>
+          <div class="well well-sm">
+            <div class="dropdown-container">
+              <select class="rule-operator-select">
+                <option value="<%= RQ.RULE_OPERATORS.EQUALS %>" "<% if(source.operator === RQ.RULE_OPERATORS.EQUALS) { %> selected <% } %>">
+                  Equals
+                </option>
+                <option value="<%= RQ.RULE_OPERATORS.CONTAINS %>" <% if(source.operator === RQ.RULE_OPERATORS.CONTAINS) { %> selected <% } %> >
+                  Contains
+                </option>
+              </select>
+            </div>
+
+            <% _.each(source.values, function(value, index) { %>
+                <div class="source-value-container">
+                  <input type="url" class="form-control source-url-input"
+                     placeholder="e.g. http://www.yahoo.com/" value="<%=value%>" data-index="<%=index%>"/>
+                </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <div class="input-group destination-container">
+          <span class="input-group-addon">Destination</span>
+          <input type="url" class="form-control destination-url-input"
+             placeholder="e.g. http://www.google.com/" value="<%=rule.getDestination()%>">
+        </div>
+
+        <div class="buttons-container">
+          <a id="save-redirect-rule" class="btn btn-success">Save</a>
+          <a href="#" class="btn btn-default">Cancel</a>
+        </div>
+      </section>
+    </script>
+    <!-- End of Redirect Rule Editor Template -->
+
+    <script type="text/template" id="cancel-rule-editor-template">
+      <nav class="rule-header">
+        <span>Cancel Request Rule</span>
+      </nav>
+      <section class="rule-body">
+        <div class="input-group name-container">
+          <span class="input-group-addon">Rule Name</span>
+          <input type="text" class="form-control rule-name-input" placeholder="" value="<%=rule.getName()%>">
+        </div>
+
+        <% var status = rule.getStatus() %>
+        <div class="rule-status-container">
+          <span class="title">Status</span>
+          <span class="dropdown-container">
+            <select class="rule-status-select">
+              <option value="<%= RQ.RULE_STATUS.ACTIVE %>" "<% if(status === RQ.RULE_STATUS.ACTIVE) { %> selected <% } %>">
+              Active
+              </option>
+              <option value="<%= RQ.RULE_STATUS.INACTIVE %>" <% if(status === RQ.RULE_STATUS.INACTIVE) { %> selected <% } %> >
+              Inactive
+              </option>
+            </select>
+          </span>
+        </div>
+
+        <div class="description-container">
+          <div class="title">Rule Description (Optional)</div>
+          <textarea class="rule-description"
+                    placeholder="e.g. Cancel request for evilsite.com"><%=rule.getDescription()%></textarea>
+        </div>
+
+        <div class="source-container">
+          <% var source = rule.getSource(); %>
+          <div class="title">Source</div>
+          <div class="well well-sm">
+            <div class="dropdown-container">
+              <select class="rule-operator-select">
+                <option value="<%= RQ.RULE_OPERATORS.EQUALS %>" "<% if(source.operator === RQ.RULE_OPERATORS.EQUALS) { %> selected <% } %>">
+                Equals
+                </option>
+                <option value="<%= RQ.RULE_OPERATORS.CONTAINS %>" <% if(source.operator === RQ.RULE_OPERATORS.CONTAINS) { %> selected <% } %> >
+                Contains
+                </option>
+              </select>
+            </div>
+
+            <% _.each(source.values, function(value, index) { %>
+            <div class="source-value-container">
+              <input type="url" class="form-control source-url-input"
+                     placeholder="e.g. http://www.yahoo.com/" value="<%=value%>" data-index="<%=index%>"/>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <div class="buttons-container">
+          <a id="save-cancel-rule" class="btn save-button">Save</a>
+          <a href="#" class="btn btn-default">Cancel</a>
+        </div>
+      </section>
+    </script>
+
+    <!-------------------------------- Replace Rule Editor Template ------------------------------------->
+    <script type="text/template" id="replace-rule-editor-template">
+      <nav class="rule-header">
+        <span>Replace Host or some part of URL</span>
+      </nav>
+      <section class="rule-body">
+        <div class="input-group name-container">
+          <span class="input-group-addon">Rule Name</span>
+          <input type="text" class="form-control rule-name-input" placeholder="" value="<%=rule.getName()%>">
+        </div>
+
+        <% var status = rule.getStatus() %>
+        <div class="rule-status-container">
+          <span class="title">Status</span>
+          <span class="dropdown-container">
+            <select class="rule-status-select">
+              <option value="<%= RQ.RULE_STATUS.ACTIVE %>" "<% if(status === RQ.RULE_STATUS.ACTIVE) { %> selected <% } %>">
+              Active
+              </option>
+              <option value="<%= RQ.RULE_STATUS.INACTIVE %>" <% if(status === RQ.RULE_STATUS.INACTIVE) { %> selected <% } %> >
+              Inactive
+              </option>
+            </select>
+          </span>
+        </div>
+
+        <div class="description-container">
+          <div class="title">Rule Description (Optional)</div>
+          <textarea class="rule-description"
+                    placeholder="e.g. Replace http://evilsite.com with http://goodsite.com in all URLs"><%=rule.getDescription()%></textarea>
+        </div>
+
+        <div class="pairs-container">
+          <div class="title">
+            <span class="left">Pairs</span>
+            <button class="right btn add-pair">
+              <span class="glyphicon glyphicon-plus-sign action-icon"></span>
+              <span>New</span>
+            </button>
+            </div>
+          <div class="well well-sm">
+            <% var pairs = rule.getPairs();
+            _.each(pairs, function(pair, index) {
+              var from = pair.from,
+                to = pair.to; %>
+              <div class="pair-container" data-index="<%=index%>">
+                <div class="input-group">
+                  <span class="input-group-addon">Replace</span>
+                  <input type="text" class="form-control from-input" data-key="from"
+                         placeholder="This part in URL" value="<%=from%>">
+                </div>
+                <div class="input-group">
+                  <span class="input-group-addon">With</span>
+                  <input type="text" class="form-control to-input" data-key="to"
+                         placeholder="Will be replaced by this string" value="<%=to%>">
+                </div>
+                <span class="glyphicon glyphicon-trash delete-pair action-icon"></span>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <div class="buttons-container">
+          <a id="save-replace-rule" class="btn save-button">Save</a>
+          <a href="#" class="btn btn-default">Cancel</a>
+        </div>
+      </section>
+    </script>
+    <!----------------------End of Replace Rule Editor Template------------------------------------------------>
+
+    <script type="text/template" id="rule-cards-template">
+      <nav class="rule-header rq-dimgrey">
+        <span>Select Rule</span>
+        <a href="#selectRule" role="button" disabled class="btn-success btn right create-rule-button">Create Rule</a>
+      </nav>
+      <section class="rule-body">
+        <div class="panel panel-redirect-rule" data-target="#new/Redirect">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <span>Redirect Request</span>
+              <span class="glyphicon glyphicon-ok select-icon"></span>
+            </h3>
+          </div>
+          <div class="panel-body">
+            Redirect a request URL
+          </div>
+        </div>
+
+        <div class="panel panel-cancel-rule" data-target="#new/Cancel">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <span>Cancel Request</span>
+              <span class="glyphicon glyphicon-ok select-icon"></span>
+            </h3>
+          </div>
+          <div class="panel-body">
+            Cancel a request
+          </div>
+        </div>
+
+        <div class="panel panel-replace-rule" data-target="#new/Replace">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <span>Replace Host</span>
+              <span class="glyphicon glyphicon-ok select-icon"></span>
+            </h3>
+          </div>
+          <div class="panel-body">
+            Replace host name in a URL
+          </div>
+        </div>
+      </section>
+    </script>
+
+    <!-- End of templates sections -->
+
+    <div class="header">
+      <img src="/resources/images/48x48x32.png" class="icon-requestly">
+      <span class="rq-white">Request</span>
+      <span class="rq-blue">ly</span>
+      <span class="rq-dash"> - </span>
+      <span class="rq-line">Play with Network Requests</span>
+    </div>
+
+    <div id="content" class="content"></div>
+
+    <!-- Load all scripts here  -->
+    <script type="text/javascript" src="/src/libs/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="/src/libs/underscore-1.6.0.js"></script>
+    <script type="text/javascript" src="/src/libs/backbone-1.1.2.js"></script>
+
+    <script type="text/javascript" src="/src/Shared/shared.js"></script>
+
+    <!-- Utils and Components -->
+    <script type="text/javascript" src="/src/pages/js/components/notification.js"></script>
+    <script type="text/javascript" src="/src/pages/js/components/FileHandler.js"></script>
+
+    <!-- Backbone Models -->
+    <script type="text/javascript" src="/src/pages/js/models/BaseRuleModel.js"></script>
+    <script type="text/javascript" src="/src/pages/js/models/RedirectRuleModel.js"></script>
+    <script type="text/javascript" src="/src/pages/js/models/CancelRuleModel.js"></script>
+    <script type="text/javascript" src="/src/pages/js/models/ReplaceRuleModel.js"></script>
+
+    <!-- Backbone Collections -->
+    <script type="text/javascript" src="/src/pages/js/collections/RulesCollection.js"></script>
+
+    <!-- Backbone Views -->
+    <script type="text/javascript" src="/src/pages/js/views/RedirectRuleEditorView.js"></script>
+    <script type="text/javascript" src="/src/pages/js/views/CancelRuleEditorView.js"></script>
+    <script type="text/javascript" src="/src/pages/js/views/ReplaceRuleEditorView.js"></script>
+    <script type="text/javascript" src="/src/pages/js/views/RuleIndexView.js"></script>
+    <script type="text/javascript" src="/src/pages/js/views/RuleCardsView.js"></script>
+
+    <script type="text/javascript" src="/src/pages/js/app.js"></script>
+    <script type="text/javascript" src="/src/pages/js/router.js"></script>
+    <script type="text/javascript" src="/src/pages/js/init.js"></script>
+  </body>
+</html>

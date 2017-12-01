@@ -1,0 +1,124 @@
+/* (Use different panel colors as available http://bootswatch.com/cerulean/)
+ * Color list for different types of rules
+ * 1. Redirect Rule: #73a839
+*/
+body {
+  background: #bbb;
+}
+
+select {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1;
+  color: #555;
+  text-align: center;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.glyphicon {
+  cursor: pointer;
+}
+
+.header {
+  background: #4c66a4;
+  height: 35px;
+  line-height: 35px;
+  font-size: 14px;
+  text-align: center;
+  color: #eee;
+}
+
+.right {
+  float: right;
+}
+
+.dropdown-container {
+  padding-bottom: 10px;
+}
+
+.input-group {
+  padding: 10px 0;
+}
+
+.icon-requestly {
+  height: 30px;
+  position: relative;
+  top: -3px;
+}
+
+.rq-white {
+  color: white;
+  font-size: 18px;
+  text-shadow: 0 0 1px;
+}
+
+.rq-blue {
+  color: #3DA4DF;
+  margin-left: -4px;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow: 0 0 1px;
+  font-family: monospace;
+  letter-spacing: -2px;
+}
+
+#rq-notifier {
+  border-radius: 2px;
+  color: whitesmoke;
+  font-weight: bold;
+  position: fixed;
+  padding: 8px;
+  z-index: 100;
+  text-align: center;
+  width: 100%;
+}
+
+.rq-success {
+  background-color: #3c763d;
+}
+
+.rq-error {
+  background-color: #a94442;
+}
+
+.rq-info {
+  background-color: #31708f;
+}
+
+.rq-notice {
+  background-color: #DF731F;
+}
+
+.content {
+  width: 800px;
+  margin: auto;
+  background: #fff;
+  position: absolute;
+  top: 35px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+}
+
+.rule-header {
+  padding: 10px;
+  color: white;
+  font-size: 14px;
+}
+
+.rq-green {
+  background: #5B9027;
+}
+
+.rq-dimgrey {
+  background: dimgrey;
+}
+
+.content .rule-body {
+  padding: 16px;
+}
