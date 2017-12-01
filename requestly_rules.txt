@@ -1,0 +1,1 @@
+[{"creationDate":1512098683827,"description":"","destination":"http://touch.facebook.com/","id":"Redirect_1512098683827","name":"facebook redirect","ruleType":"Redirect","source":{"key":"Url","operator":"Contains","values":["https://www.facebook.com/"]},"status":"Inactive"}]
